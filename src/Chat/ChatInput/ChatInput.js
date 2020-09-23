@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import './ChatInput.scss';
+import answersData from '../../data/answers.json';
+import { ROLE } from '../../constants';
 
 class ChatInput extends Component {
   constructor(props) {
@@ -13,17 +15,33 @@ class ChatInput extends Component {
 
   sendMessage = () => {
     this.updateText();
+    if (this.state.text === '') {
+      return;
+    }
+
     const message = {
       ...this.state,
     };
     this.props.concatMessage(message);
+    this.concatDefinedAnswer(message);
     this.clearInput();
+    this.clearState();
   };
 
   updateText = () => {
     const text = document.getElementById('messageText').value;
-    const role = 'CUSTOMER';
+    const role = ROLE.CUSTOMER;
     this.setState({ text, role });
+  };
+
+  concatDefinedAnswer = (message) => {
+    answersData.forEach((answer) => {
+      answer.tags.forEach((tag) => {
+        if (message.text.includes(tag)) {
+          this.props.concatMessage(answer);
+        }
+      });
+    });
   };
 
   hasPressedEnter = (event) => {
@@ -35,6 +53,15 @@ class ChatInput extends Component {
 
   clearInput = () => {
     document.getElementById('messageText').value = '';
+  };
+
+  clearState = () => {
+    const state = {
+      text: '',
+      role: '',
+      tags: [],
+    };
+    this.setState({ ...state });
   };
 
   render() {
